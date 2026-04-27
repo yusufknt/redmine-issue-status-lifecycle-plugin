@@ -1,5 +1,30 @@
 <h2>Status Lifecycle</h2>
 
+<% available_users = Array(@available_users) %>
+<% available_categories = Array(@available_categories) %>
+<% user_stats = Array(@user_stats) %>
+<% category_stats = Array(@category_stats) %>
+<% issues_data = Array(@issues_data) %>
+
+<%= form_with url: project_issue_status_lifecycle_path(@project), method: :get, local: true do %>
+  <fieldset style="margin-bottom: 15px;">
+    <legend><strong>Filtreler</strong></legend>
+
+    <label for="issue_id">Issue No:</label>
+    <%= text_field_tag :issue_id, params[:issue_id], id: 'issue_id', placeholder: 'Orn: 123', style: 'margin-right:10px;' %>
+
+    <label for="user">Kullanıcı:</label>
+    <%= select_tag :user, options_for_select([['Tümü', '']] + available_users.map { |u| [u, u] }, params[:user]), id: 'user', style: 'margin-right:10px;' %>
+
+    <label for="category">Kategori:</label>
+    <%= select_tag :category, options_for_select([['Tümü', '']] + available_categories.map { |c| [c, c] }, params[:category]), id: 'category', style: 'margin-right:10px;' %>
+
+    <%= submit_tag 'Filtrele' %>
+    <%= link_to 'Temizle', project_issue_status_lifecycle_path(@project), style: 'margin-left:8px;' %>
+    <%= link_to 'CSV Export', project_issue_status_lifecycle_path(@project, request.query_parameters.merge(format: :csv)), style: 'margin-left:12px;' %>
+  </fieldset>
+<% end %>
+
 <h3>Kullanıcıya Göre Toplam Süre</h3>
 
 <table border="1" cellpadding="5">
@@ -8,7 +33,7 @@
     <th>Toplam Süre</th>
   </tr>
 
-  <% @user_stats.each do |user_stat| %>
+  <% user_stats.each do |user_stat| %>
     <tr>
       <td><%= user_stat[:user] %></td>
       <td><%= user_stat[:total_text] %></td>
@@ -28,7 +53,7 @@
     <th>Toplam Süre</th>
   </tr>
 
-  <% @category_stats.each do |category_stat| %>
+  <% category_stats.each do |category_stat| %>
     <tr>
       <td><%= category_stat[:category] %></td>
       <td><%= category_stat[:total_text] %></td>
@@ -59,7 +84,7 @@
   </thead>
 
   <tbody>
-    <% @issues_data.each do |issue| %>
+    <% issues_data.each do |issue| %>
       <% issue[:history].each do |h| %>
         <tr>
           <td><%= issue[:id] %></td>
@@ -80,7 +105,7 @@
 
 <h3>İş Bazlı Detaylar</h3>
 
-<% @issues_data.each do |issue| %>
+<% issues_data.each do |issue| %>
   <div style="border:1px solid #ccc; margin-bottom:15px; padding:10px;">
     <h3>#<%= issue[:id] %> - <%= issue[:subject] %></h3>
 
@@ -145,8 +170,8 @@
     rows.forEach(row => tbody.appendChild(row));
   }
 
-  const userLabels = <%= raw @user_stats.map { |u| u[:user] }.to_json %>;
-  const userData = <%= raw @user_stats.map { |u| u[:total].to_i }.to_json %>;
+  const userLabels = <%= raw user_stats.map { |u| u[:user] }.to_json %>;
+  const userData = <%= raw user_stats.map { |u| u[:total].to_i }.to_json %>;
 
   new Chart(document.getElementById("userChart"), {
     type: "bar",
@@ -159,8 +184,8 @@
     }
   });
 
-  const categoryLabels = <%= raw @category_stats.map { |c| c[:category] }.to_json %>;
-  const categoryData = <%= raw @category_stats.map { |c| c[:total].to_i }.to_json %>;
+  const categoryLabels = <%= raw category_stats.map { |c| c[:category] }.to_json %>;
+  const categoryData = <%= raw category_stats.map { |c| c[:total].to_i }.to_json %>;
 
   new Chart(document.getElementById("categoryChart"), {
     type: "bar",
