@@ -8,8 +8,12 @@ Bu eklenti, Redmine projelerindeki işlerin (issues) durum değişim süreçleri
 - Her durum arasında geçen sürenin hesaplanması
 - Kullanıcı bazlı toplam süre analizi
 - Kategori bazlı toplam süre analizi
+- Status bazlı toplam süre analizi
 - Arayüzden sıralama (sorting)
+- Filtreleme (issue no, kullanıcı, kategori)
+- CSV export
 - Grafiksel gösterim (Chart.js)
+- İş bazlı aç/kapat detay ve issue içi grafikler
 
 ---
 
@@ -19,33 +23,49 @@ Bu eklenti, Redmine projelerindeki işlerin (issues) durum değişim süreçleri
 
 ```bash
 cd redmine/plugins
-Plugin’i kopyalayın:
+```
+
+2. Plugin'i kopyalayın:
+
+```bash
 git clone <repo-link>
-Gerekli migration işlemlerini çalıştırın:
+```
+
+3. Gerekli işlemleri çalıştırın:
+
+```bash
 bundle install
 bin/rails db:migrate RAILS_ENV=production
-Redmine server’ı başlatın:
+```
+
+4. Redmine server'ı başlatın:
+
+```bash
 bin/rails server
-Kullanım
-Redmine arayüzünde bir projeye girin
-Ayarlar → Modüller → Issue Status Lifecycle aktif edin
-Proje menüsünden Status Lifecycle sekmesine girin
-Teknik Detaylar
-Status değişimleri journals tablosundan alınır
-status_id değişimleri üzerinden lifecycle hesaplanır
-Süreler created_on timestamp farkları ile hesaplanır
-Performans için includes ile eager loading kullanılmıştır
-Kullanılan Teknolojiler
-Ruby on Rails
-Redmine Plugin API
-Chart.js (grafikler için)
-Notlar
-Büyük veri setlerinde performans için optimize edilebilir
-Ek olarak filtreleme ve pagination eklenebilir
+```
+
+## Kullanım
+
+1. Redmine arayüzünde bir projeye girin.
+2. Ayarlar -> Modüller -> `Issue Status Lifecycle` modülünü aktif edin.
+3. Proje menüsünden `Status Lifecycle` sekmesine girin.
+
+## Teknik Detaylar
+
+- Status değişimleri `journals` tablosundan alınır.
+- Lifecycle, `status_id` değişimleri üzerinden hesaplanır.
+- Süreler `created_on` timestamp farkları ile hesaplanır.
+- Performans için `includes` ile eager loading kullanılmıştır.
+
+## Kullanılan Teknolojiler
+
+- Ruby on Rails
+- Redmine Plugin API
+- Chart.js
 
 ---
 
-## 3. GitHub’a yükleme
+## GitHub'a Yükleme
 
 Proje root’ta:
 
@@ -58,5 +78,4 @@ git remote add origin <repo-link>
 git push -u origin main
 ```
 
-
-https://github.com/yusufknt/redmine_project.git
+Repo: https://github.com/yusufknt/redmine-issue-status-lifecycle-plugin

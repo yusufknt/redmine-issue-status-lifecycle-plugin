@@ -127,11 +127,18 @@
 <h3>İş Bazlı Detaylar</h3>
 
 <% issues_data.each do |issue| %>
-  <div style="border:1px solid #ccc; margin-bottom:15px; padding:10px;">
-    <h3>#<%= issue[:id] %> - <%= issue[:subject] %></h3>
+  <details style="border:1px solid #ccc; margin-bottom:15px; padding:10px;">
+    <summary style="cursor:pointer;">
+      #<%= issue[:id] %> - <%= issue[:subject] %>
+      | Kategori: <%= issue[:category] %>
+      | Toplam süre: <%= issue[:total_duration_text] %>
+    </summary>
 
-    <p>Kategori: <%= issue[:category] %></p>
-    <p>Toplam süre: <strong><%= issue[:total_duration_text] %></strong></p>
+    <br>
+
+    <canvas id="issueChart_<%= issue[:id] %>" width="400" height="160"></canvas>
+
+    <br>
 
     <table border="1" cellpadding="5">
       <tr>
@@ -152,7 +159,7 @@
         </tr>
       <% end %>
     </table>
-  </div>
+  </details>
 <% end %>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -218,6 +225,19 @@
       }]
     }
   });
+
+  <% issues_data.each do |issue| %>
+    new Chart(document.getElementById("issueChart_<%= issue[:id] %>"), {
+      type: "bar",
+      data: {
+        labels: <%= raw issue[:history].map { |h| "#{h[:from]} → #{h[:to]}" }.to_json %>,
+        datasets: [{
+          label: "Issue #<%= issue[:id] %> durum süreleri (saniye)",
+          data: <%= raw issue[:history].map { |h| h[:duration].to_i }.to_json %>
+        }]
+      }
+    });
+  <% end %>
 
   const statusLabels = <%= raw status_stats.map { |s| s[:status] }.to_json %>;
   const statusData = <%= raw status_stats.map { |s| s[:total].to_i }.to_json %>;
