@@ -11,6 +11,7 @@ class IssueStatusLifecycleController < ApplicationController
     @issues_data = apply_filters(all_issues_data)
     @user_stats = build_user_stats(@issues_data)
     @category_stats = build_category_stats(@issues_data)
+    @status_stats = build_status_stats(@issues_data)
 
     respond_to do |format|
       format.html
@@ -60,8 +61,8 @@ class IssueStatusLifecycleController < ApplicationController
       journal.details.each do |detail|
         next unless detail.prop_key == 'status_id'
 
-        old_status = IssueStatus.find_by(id: detail.old_value)
-        new_status = IssueStatus.find_by(id: detail.value)
+        old_status = status_cache[detail.old_value.to_i]
+        new_status = status_cache[detail.value.to_i]
 
         duration = journal.created_on - last_time
 
@@ -117,6 +118,25 @@ class IssueStatusLifecycleController < ApplicationController
     end
   end
 
+  def build_status_stats(issues_data)
+    stats = Hash.new(0)
+
+    issues_data.each do |issue|
+      issue[:history].each do |h|
+        status_name = h[:to].presence || 'Unknown'
+        stats[status_name] += h[:duration]
+      end
+    end
+
+    stats.map do |status, total|
+      {
+        status: status,
+        total: total,
+        total_text: format_duration(total)
+      }
+    end
+  end
+
   def apply_filters(issues_data)
     filtered = issues_data
 
@@ -166,6 +186,10 @@ class IssueStatusLifecycleController < ApplicationController
         end
       end
     end
+  end
+
+  def status_cache
+    @status_cache ||= IssueStatus.all.index_by(&:id)
   end
 
   def format_duration(seconds)

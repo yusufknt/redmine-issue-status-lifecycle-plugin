@@ -4,6 +4,7 @@
 <% available_categories = Array(@available_categories) %>
 <% user_stats = Array(@user_stats) %>
 <% category_stats = Array(@category_stats) %>
+<% status_stats = Array(@status_stats) %>
 <% issues_data = Array(@issues_data) %>
 
 <%= form_with url: project_issue_status_lifecycle_path(@project), method: :get, local: true do %>
@@ -62,6 +63,26 @@
 </table>
 
 <canvas id="categoryChart" width="400" height="180"></canvas>
+
+<br>
+
+<h3>Status'e Gore Toplam Sure</h3>
+
+<table border="1" cellpadding="5">
+  <tr>
+    <th>Status</th>
+    <th>Toplam Sure</th>
+  </tr>
+
+  <% status_stats.each do |status_stat| %>
+    <tr>
+      <td><%= status_stat[:status] %></td>
+      <td><%= status_stat[:total_text] %></td>
+    </tr>
+  <% end %>
+</table>
+
+<canvas id="statusChart" width="400" height="180"></canvas>
 
 <br>
 
@@ -194,6 +215,20 @@
       datasets: [{
         label: "Kategoriye göre toplam süre (saniye)",
         data: categoryData
+      }]
+    }
+  });
+
+  const statusLabels = <%= raw status_stats.map { |s| s[:status] }.to_json %>;
+  const statusData = <%= raw status_stats.map { |s| s[:total].to_i }.to_json %>;
+
+  new Chart(document.getElementById("statusChart"), {
+    type: "bar",
+    data: {
+      labels: statusLabels,
+      datasets: [{
+        label: "Status'e gore toplam sure (saniye)",
+        data: statusData
       }]
     }
   });
