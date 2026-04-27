@@ -1,0 +1,175 @@
+<h2>Status Lifecycle</h2>
+
+<h3>Kullanıcıya Göre Toplam Süre</h3>
+
+<table border="1" cellpadding="5">
+  <tr>
+    <th>Kullanıcı</th>
+    <th>Toplam Süre</th>
+  </tr>
+
+  <% @user_stats.each do |user_stat| %>
+    <tr>
+      <td><%= user_stat[:user] %></td>
+      <td><%= user_stat[:total_text] %></td>
+    </tr>
+  <% end %>
+</table>
+
+<canvas id="userChart" width="400" height="180"></canvas>
+
+<br>
+
+<h3>Kategoriye Göre Toplam Süre</h3>
+
+<table border="1" cellpadding="5">
+  <tr>
+    <th>Kategori</th>
+    <th>Toplam Süre</th>
+  </tr>
+
+  <% @category_stats.each do |category_stat| %>
+    <tr>
+      <td><%= category_stat[:category] %></td>
+      <td><%= category_stat[:total_text] %></td>
+    </tr>
+  <% end %>
+</table>
+
+<canvas id="categoryChart" width="400" height="180"></canvas>
+
+<br>
+
+<h3>Tüm Durum Geçişleri</h3>
+
+<p>Başlıklara tıklayarak sıralama yapabilirsiniz.</p>
+
+<table id="lifecycle-table" border="1" cellpadding="5">
+  <thead>
+    <tr>
+      <th onclick="sortTable(0, 'number')">İş No</th>
+      <th onclick="sortTable(1, 'text')">İş Başlığı</th>
+      <th onclick="sortTable(2, 'text')">Kategori</th>
+      <th onclick="sortTable(3, 'text')">From</th>
+      <th onclick="sortTable(4, 'text')">To</th>
+      <th onclick="sortTable(5, 'number')">Süre</th>
+      <th onclick="sortTable(6, 'text')">Kullanıcı</th>
+      <th onclick="sortTable(7, 'text')">Değişim Zamanı</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @issues_data.each do |issue| %>
+      <% issue[:history].each do |h| %>
+        <tr>
+          <td><%= issue[:id] %></td>
+          <td><%= issue[:subject] %></td>
+          <td><%= issue[:category] %></td>
+          <td><%= h[:from] %></td>
+          <td><%= h[:to] %></td>
+          <td data-sort="<%= h[:duration].to_i %>"><%= h[:duration_text] %></td>
+          <td><%= h[:user] %></td>
+          <td><%= h[:changed_at] %></td>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<h3>İş Bazlı Detaylar</h3>
+
+<% @issues_data.each do |issue| %>
+  <div style="border:1px solid #ccc; margin-bottom:15px; padding:10px;">
+    <h3>#<%= issue[:id] %> - <%= issue[:subject] %></h3>
+
+    <p>Kategori: <%= issue[:category] %></p>
+    <p>Toplam süre: <strong><%= issue[:total_duration_text] %></strong></p>
+
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Süre</th>
+        <th>Kullanıcı</th>
+        <th>Değişim zamanı</th>
+      </tr>
+
+      <% issue[:history].each do |h| %>
+        <tr>
+          <td><%= h[:from] %></td>
+          <td><%= h[:to] %></td>
+          <td><%= h[:duration_text] %></td>
+          <td><%= h[:user] %></td>
+          <td><%= h[:changed_at] %></td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
+<% end %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  let sortDirections = {};
+
+  function sortTable(columnIndex, type) {
+    const table = document.getElementById("lifecycle-table");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+
+    sortDirections[columnIndex] = !sortDirections[columnIndex];
+    const ascending = sortDirections[columnIndex];
+
+    rows.sort((a, b) => {
+      let aCell = a.children[columnIndex];
+      let bCell = b.children[columnIndex];
+
+      let aValue = aCell.dataset.sort || aCell.innerText.trim();
+      let bValue = bCell.dataset.sort || bCell.innerText.trim();
+
+      if (type === "number") {
+        aValue = Number(aValue);
+        bValue = Number(bValue);
+      } else {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return ascending ? -1 : 1;
+      if (aValue > bValue) return ascending ? 1 : -1;
+      return 0;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  const userLabels = <%= raw @user_stats.map { |u| u[:user] }.to_json %>;
+  const userData = <%= raw @user_stats.map { |u| u[:total].to_i }.to_json %>;
+
+  new Chart(document.getElementById("userChart"), {
+    type: "bar",
+    data: {
+      labels: userLabels,
+      datasets: [{
+        label: "Kullanıcıya göre toplam süre (saniye)",
+        data: userData
+      }]
+    }
+  });
+
+  const categoryLabels = <%= raw @category_stats.map { |c| c[:category] }.to_json %>;
+  const categoryData = <%= raw @category_stats.map { |c| c[:total].to_i }.to_json %>;
+
+  new Chart(document.getElementById("categoryChart"), {
+    type: "bar",
+    data: {
+      labels: categoryLabels,
+      datasets: [{
+        label: "Kategoriye göre toplam süre (saniye)",
+        data: categoryData
+      }]
+    }
+  });
+</script>
